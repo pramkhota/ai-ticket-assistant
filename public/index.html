@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Support Ticket Assistant</title>
+    <!-- โหลด Font จาก Google เพื่อความสวยงาม -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ตั้งค่าสีพื้นฐาน (Design Tokens) */
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', 'Inter', sans-serif;
+            background: var(--bg-color);
+            /* พื้นหลังแบบเรืองแสง 2 มุม */
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        /* กล่องสไตล์ Glassmorphism (กระจกใสเบลอ) */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 15px;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px); /* เอฟเฟกต์ปุ่มลอยขึ้นตอนชี้เมาส์ */
+        }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            margin-top: 32px;
+            display: none;
+            animation: fadeIn 0.5s ease; /* แอนิเมชันเวลาโชว์ผลลัพธ์ */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-content {
+            background: rgba(15, 23, 42, 0.8);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 12px 12px 0;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="glass-card">
+            <h1>Customer Support Desk</h1>
+            <p class="subtitle">ระบบผู้ช่วยวิเคราะห์ข้อความร้องเรียนด้วย AI</p>
+            
+            <textarea id="ticketInput" placeholder="ลองพิมพ์ข้อความร้องเรียน (และใส่เบอร์โทรกับอีเมล) ลงที่นี่ดูครับ..."></textarea>
+            <button id="submitBtn" onclick="sendTicket()">ส่งข้อความวิเคราะห์</button>
+
+            <!-- กล่องแสดงผลลัพธ์ (จะถูกซ่อนไว้จนกว่าจะได้คำตอบ) -->
+            <div id="resultBox" class="result-box">
+                <div class="result-title">🔒 Safe Ticket (เซ็นเซอร์แล้ว)</div>
+                <div id="safeTicketResult" class="result-content"></div>
+
+                <div id="policyBox" style="display: none;">
+                    <div class="result-title">📚 อ้างอิงนโยบาย (RAG Retrieved)</div>
+                    <div id="policyResult" class="result-content" style="border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.1); color: #fbbf24;"></div>
+                </div>
+
+                <div class="result-title">🤖 AI Response (สรุปและแนะนำทางแก้)</div>
+                <div id="aiSummaryResult" class="result-content" style="border-left-color: #a855f7;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันนี้จะทำงานเมื่อกดปุ่ม "ส่งข้อความวิเคราะห์"
+        async function sendTicket() {
+            const input = document.getElementById('ticketInput').value;
+            if (!input.trim()) return; // ถ้าไม่ได้พิมพ์อะไรมา ไม่ต้องทำอะไร
+
+            const btn = document.getElementById('submitBtn');
+            const resultBox = document.getElementById('resultBox');
+            const safeContent = document.getElementById('safeTicketResult');
+            const aiContent = document.getElementById('aiSummaryResult');
+
+            // เปลี่ยนปุ่มเป็นสถานะโหลด
+            btn.disabled = true;
+            btn.innerText = "กำลังใช้พลัง AI วิเคราะห์...";
+            resultBox.style.display = "none";
+
+            try {
+                // 🚀 ยิง HTTP POST Request ไปหา Backend API (Express.js) ของเรา
+                const response = await fetch('/api/ticket', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticket: input })
+                });
+
+                const data = await response.json();
+
+                // ถ้าสำเร็จ ให้เอาข้อมูลมาแสดงบนหน้าเว็บ
+                if (response.ok) {
+                    safeContent.innerText = data.safeTicket;
+                    aiContent.innerText = data.aiResponse;
+                    
+                    if (data.retrievedPolicy) {
+                        document.getElementById('policyResult').innerText = data.retrievedPolicy;
+                        document.getElementById('policyBox').style.display = "block";
+                    } else {
+                        document.getElementById('policyBox').style.display = "none";
+                    }
+
+                    resultBox.style.display = "block";
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (error) {
+                alert("Connection failed! ตรวจสอบว่า Backend Server ทำงานอยู่หรือไม่");
+            } finally {
+                // คืนสถานะปุ่มกลับมาเหมือนเดิม
+                btn.disabled = false;
+                btn.innerText = "ส่งข้อความวิเคราะห์";
+            }
+        }
+    </script>
+</body>
+</html>
