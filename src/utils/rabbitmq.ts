@@ -10,6 +10,11 @@ let channel: Channel | null = null;
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 const EXCHANGE_NAME = 'logistics_exchange';
 const ORDER_QUEUE = 'order_created_queue';
+const NOTIFICATION_QUEUE = 'notification_queue';
+
+export function getChannel(): Channel | null {
+    return channel;
+}
 
 export async function connectRabbitMQ() {
     try {
@@ -21,11 +26,13 @@ export async function connectRabbitMQ() {
         
         // สร้าง Queue แบบ Durable (ทนทาน ไม่หายเมื่อปิดโปรแกรม)
         await channel.assertQueue(ORDER_QUEUE, { durable: true });
+        await channel.assertQueue(NOTIFICATION_QUEUE, { durable: true });
         
         // ผูก Queue เข้ากับ Exchange
         await channel.bindQueue(ORDER_QUEUE, EXCHANGE_NAME, 'order.created');
+        await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, 'order.created');
 
-        logger.info('เชื่อมต่อ RabbitMQ สำเร็จ และเตรียม Queue พร้อมใช้งาน');
+        logger.info('Connected to RabbitMQ and initialized Queues');
     } catch (error) {
         logger.error(`เชื่อมต่อ RabbitMQ ไม่สำเร็จ: ${(error as Error).message}`);
         // สำหรับ Production อาจจะต้องมี Retry Logic
@@ -47,9 +54,9 @@ export async function publishEvent(routingKey: string, message: any, correlation
             correlationId: correlationId // ฝัง ID เพื่อนำไปใช้ Tracking ใน Log
         });
         
-        logger.info(`ส่ง Event [${routingKey}] ไปยัง RabbitMQ สำเร็จ`, { trackingNo: correlationId });
+        logger.info(`Published Event [${routingKey}] to RabbitMQ successfully`, { trackingNo: correlationId });
     } catch (error) {
-        logger.error(`ส่ง Event ไม่สำเร็จ: ${(error as Error).message}`, { trackingNo: correlationId });
+        logger.error(`Published Event ไม่สำเร็จ: ${(error as Error).message}`, { trackingNo: correlationId });
     }
 }
 
@@ -65,7 +72,7 @@ export async function consumeEvent(
     // กำหนดให้ดึงข้อความมาทำทีละ 1 ข้อความ (ป้องกันการโหลดหนัก)
     await channel.prefetch(1);
 
-    logger.info(`เริ่มดักจับ Event จาก Queue: ${queueName}`);
+    logger.info(`Started consuming Event from Queue: ${queueName}`);
 
     channel.consume(queueName, async (msg: ConsumeMessage | null) => {
         if (msg) {
@@ -76,7 +83,7 @@ export async function consumeEvent(
                 // ฟังก์ชันสำหรับตอบกลับว่าทำงานสำเร็จ (ลบออกจาก Queue)
                 const ack = () => {
                     channel!.ack(msg);
-                    logger.info(`ACK ข้อความสำเร็จ`, { trackingNo: correlationId });
+                    logger.info(`ACKed message successfully`, { trackingNo: correlationId });
                 };
                 
                 // ฟังก์ชันสำหรับตอบกลับว่าทำงานล้มเหลว (ส่งกลับเข้า Queue ใหม่)

@@ -44,7 +44,7 @@ export async function initPolicyVectors() {
     if (policyVectorsCache) return; // ถ้าเคยทำแล้วไม่ต้องทำซ้ำ
 
     try {
-        console.log("⏳ [RAG] Initializing Policy Embeddings from Database...");
+        console.log(" [RAG] Initializing Policy Embeddings from Database...");
         const policyCount = await PolicyModel.countDocuments();
         
         // หากไม่มีข้อมูลเลยใน Database ให้ดึงจาก Mock data มาเซฟลง DB
@@ -58,7 +58,7 @@ export async function initPolicyVectors() {
                     content: policy.content,
                     embedding: vector
                 });
-                console.log(`✅ [DB] Seeded policy: ${policy.title}`);
+                console.log(` [DB] Seeded policy: ${policy.title}`);
             }
         }
         
@@ -69,7 +69,7 @@ export async function initPolicyVectors() {
             vector: p.embedding
         }));
 
-        console.log(`✅ [RAG] Successfully loaded ${policyVectorsCache.length} policies into memory.`);
+        console.log(` [RAG] Successfully loaded ${policyVectorsCache.length} policies into memory.`);
     } catch (error) {
         console.error("❌ [RAG] Error initializing policies:", error);
         policyVectorsCache = null;

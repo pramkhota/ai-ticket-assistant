@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { maskPII } from './masking.js';
+
+import { maskPII } from '../src/utils/masking.js';
 
 describe('PII Masking Utility', () => {
     

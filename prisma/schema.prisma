@@ -11,6 +11,7 @@ model Customer {
   id        String   @id @default(uuid())
   name      String
   phone     String
+  email     String?  // อีเมลลูกค้า
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -24,6 +25,35 @@ model Order {
   status        String   @default("PENDING") // PENDING, IN_TRANSIT, DELIVERED
   customerId    String
   customer      Customer @relation(fields: [customerId], references: [id])
+  events        OrderEventLog[]
+  emails        EmailLog[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model OrderEventLog {
+  id           String   @id @default(uuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id])
+  serviceName  String   // e.g., 'OrderService', 'Payment', 'Inventory', 'Delivery', 'Notification'
+  status       String   // 'SUCCESS', 'FAILED', 'PENDING'
+  errorMessage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model EmailLog {
+  id           String    @id @default(uuid())
+  orderId      String
+  order        Order     @relation(fields: [orderId], references: [id])
+  subject      String
+  htmlContent  String
+  templateType String    // 'MASTER', 'RETRY'
+  retryCount   Int       @default(0) // For MASTER to count resends
+  parentId     String?   // If RETRY, store MASTER id
+  status       String    // 'SUCCESS', 'FAILED'
+  previewUrl   String?
+  recipientEmail String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }

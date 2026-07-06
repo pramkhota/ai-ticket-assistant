@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Support Ticket Assistant</title>
-    <!-- โหลด Font จาก Google เพื่อความสวยงาม -->
+    <title>AI Ticket Assistant & Logistics Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* ตั้งค่าสีพื้นฐาน (Design Tokens) */
         :root {
             --primary: #6366f1;
             --primary-hover: #4f46e5;
@@ -15,190 +13,194 @@
             --card-bg: rgba(30, 41, 59, 0.7);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
         }
-
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Prompt', 'Inter', sans-serif;
             background: var(--bg-color);
-            /* พื้นหลังแบบเรืองแสง 2 มุม */
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
-
+        nav {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 16px 32px;
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        nav button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        nav button.active {
+            color: white;
+            background: var(--primary);
+        }
         .container {
-            width: 100%;
-            max-width: 600px;
+            max-width: 1000px;
+            margin: 40px auto;
             padding: 20px;
         }
-
-        /* กล่องสไตล์ Glassmorphism (กระจกใสเบลอ) */
         .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             padding: 40px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
         }
-
-        h1 {
-            margin-top: 0;
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p.subtitle {
-            color: var(--text-muted);
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-
-        textarea {
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        input, textarea {
             width: 100%;
-            height: 120px;
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 16px;
             color: var(--text-main);
             font-family: inherit;
-            font-size: 15px;
-            resize: vertical;
-            box-sizing: border-box;
-            transition: border-color 0.2s ease;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        button {
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 16px;
-            transition: all 0.2s ease;
-            font-family: inherit;
-        }
-
-        button:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px); /* เอฟเฟกต์ปุ่มลอยขึ้นตอนชี้เมาส์ */
-        }
-
-        button:disabled {
-            background: #475569;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .result-box {
-            margin-top: 32px;
-            display: none;
-            animation: fadeIn 0.5s ease; /* แอนิเมชันเวลาโชว์ผลลัพธ์ */
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .result-title {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .result-content {
-            background: rgba(15, 23, 42, 0.8);
-            border-left: 4px solid var(--primary);
-            padding: 16px;
-            border-radius: 0 12px 12px 0;
-            font-size: 15px;
-            line-height: 1.6;
             margin-bottom: 16px;
+            box-sizing: border-box;
         }
+        button.btn-primary {
+            background: var(--primary); color: white; border: none;
+            padding: 14px 24px; border-radius: 12px; font-size: 16px; cursor: pointer;
+        }
+        button.btn-primary:hover { background: var(--primary-hover); }
+        
+        /* Flow Tracker Styles */
+        .order-row {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .order-header {
+            display: flex; justify-content: space-between; margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;
+        }
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .flow-step {
+            display: flex; flex-direction: column; align-items: center;
+            flex: 1; position: relative;
+        }
+        .flow-step:not(:last-child)::after {
+            content: ''; position: absolute;
+            top: 25px; right: -50%; width: 100%; height: 2px;
+            background: rgba(255,255,255,0.2); z-index: 0;
+        }
+        .flow-step.success:not(:last-child)::after { background: var(--success); }
+        
+        .step-icon {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #334155; display: flex; align-items: center; justify-content: center;
+            z-index: 1; border: 2px solid #475569; font-size: 20px;
+        }
+        .step-name { margin-top: 12px; font-size: 14px; font-weight: 500; }
+        .step-status { margin-top: 4px; font-size: 12px; color: var(--text-muted); }
+        
+        .flow-step.success .step-icon { background: rgba(16, 185, 129, 0.2); border-color: var(--success); color: var(--success); }
+        .flow-step.failed .step-icon { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        .flow-step.pending .step-icon { background: rgba(245, 158, 11, 0.2); border-color: var(--warning); color: var(--warning); }
+        
+        .btn-retry {
+            margin-top: 12px; background: var(--primary); color: white;
+            border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+            font-size: 12px; display: flex; align-items: center; gap: 4px;
+        }
+        .btn-retry:hover { background: var(--primary-hover); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="glass-card">
-            <h1>Customer Support Desk</h1>
-            <p class="subtitle">ระบบผู้ช่วยวิเคราะห์ข้อความร้องเรียนด้วย AI</p>
-            
-            <textarea id="ticketInput" placeholder="ลองพิมพ์ข้อความร้องเรียน (และใส่เบอร์โทรกับอีเมล) ลงที่นี่ดูครับ..."></textarea>
-            <button id="submitBtn" onclick="sendTicket()">ส่งข้อความวิเคราะห์</button>
+    <nav>
+        <button class="active" onclick="switchTab('ticket')">💬 Support Ticket (AI)</button>
+        <button onclick="switchTab('order')"> Create Order</button>
+        <button onclick="switchTab('dashboard'); loadDashboard();">📊 Admin Dashboard</button>
+    </nav>
 
-            <!-- กล่องแสดงผลลัพธ์ (จะถูกซ่อนไว้จนกว่าจะได้คำตอบ) -->
-            <div id="resultBox" class="result-box">
-                <div class="result-title">🔒 Safe Ticket (เซ็นเซอร์แล้ว)</div>
-                <div id="safeTicketResult" class="result-content"></div>
+    <div class="container">
+        <!-- Tab 1: AI Ticket -->
+        <div id="tab-ticket" class="tab-content active glass-card">
+            <h2>Customer Support Desk (AI)</h2>
+            <p class="subtitle" style="color: var(--text-muted); margin-bottom: 24px; font-size: 14px;">AI-Powered Support Ticket Analyzer</p>
+            <textarea id="ticketInput" placeholder="Try typing a customer complaint here (e.g., include phone number, email, or Tracking No.)..."></textarea>
+            <button id="submitBtn" class="btn-primary" onclick="sendTicket()">Analyze Ticket</button>
+            
+            <div id="resultBox" style="margin-top: 32px; display: none;">
+                <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;"> Safe Ticket (PII Masked)</div>
+                <div id="safeTicketResult" style="background: rgba(15, 23, 42, 0.8); border-left: 4px solid var(--primary); padding: 16px; border-radius: 0 12px 12px 0; font-size: 15px; line-height: 1.6; margin-bottom: 16px;"></div>
 
                 <div id="policyBox" style="display: none;">
-                    <div class="result-title">📚 อ้างอิงนโยบาย (RAG Retrieved)</div>
-                    <div id="policyResult" class="result-content" style="border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.1); color: #fbbf24;"></div>
+                    <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;"> Policy Reference (RAG Retrieved)</div>
+                    <div id="policyResult" style="border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.1); color: #fbbf24; padding: 16px; border-radius: 0 12px 12px 0; font-size: 15px; line-height: 1.6; margin-bottom: 16px;"></div>
                 </div>
 
-                <div class="result-title">🤖 AI Response (สรุปและแนะนำทางแก้)</div>
-                <div id="aiSummaryResult" class="result-content" style="border-left-color: #a855f7;"></div>
+                <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;"> AI Response (Summary & Suggested Resolution)</div>
+                <div id="aiSummaryResult" style="border-left: 4px solid #a855f7; background: rgba(15, 23, 42, 0.8); padding: 16px; border-radius: 0 12px 12px 0; font-size: 15px; line-height: 1.6; margin-bottom: 16px;"></div>
             </div>
+        </div>
+
+        <!-- Tab 2: Create Order -->
+        <div id="tab-order" class="tab-content glass-card">
+            <h2> Logistics - Create New Order</h2>
+            <input type="text" id="customerId" placeholder="Customer ID (Leave blank to generate)">
+            <input type="email" id="customerEmail" placeholder="Customer Email (e.g., customer@example.com)">
+            <input type="text" id="pickupPoint" placeholder="Pickup Point (e.g., BKK)">
+            <input type="text" id="dropoffPoint" placeholder="Dropoff Point (e.g., CNX)">
+            <button class="btn-primary" onclick="createOrder()"> Create Order (Publish Event)</button>
+            <h3 id="orderResult" style="color: var(--success); margin-top: 20px;"></h3>
+        </div>
+
+        <!-- Tab 3: Admin Dashboard -->
+        <div id="tab-dashboard" class="tab-content glass-card" style="max-width: 1000px;">
+            <h2>📊 Event Flow Tracker (Dashboard)</h2>
+            <button onclick="loadDashboard()" style="background:transparent; color:var(--primary); border:1px solid var(--primary); padding: 8px 16px; border-radius: 8px; cursor:pointer; margin-bottom:20px;"> Refresh Data</button>
+            <div id="dashboardContent">Loading data...</div>
         </div>
     </div>
 
     <script>
-        // ฟังก์ชันนี้จะทำงานเมื่อกดปุ่ม "ส่งข้อความวิเคราะห์"
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
         async function sendTicket() {
             const input = document.getElementById('ticketInput').value;
-            if (!input.trim()) return; // ถ้าไม่ได้พิมพ์อะไรมา ไม่ต้องทำอะไร
+            if (!input.trim()) return;
 
             const btn = document.getElementById('submitBtn');
             const resultBox = document.getElementById('resultBox');
-            const safeContent = document.getElementById('safeTicketResult');
-            const aiContent = document.getElementById('aiSummaryResult');
-
-            // เปลี่ยนปุ่มเป็นสถานะโหลด
+            
             btn.disabled = true;
-            btn.innerText = "กำลังใช้พลัง AI วิเคราะห์...";
+            btn.innerText = "Analyzing with AI power...";
             resultBox.style.display = "none";
 
             try {
-                // 🚀 ยิง HTTP POST Request ไปหา Backend API (Express.js) ของเรา
-                const response = await fetch('/api/ticket', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ticket: input })
-                });
-
-                const data = await response.json();
-
-                // ถ้าสำเร็จ ให้เอาข้อมูลมาแสดงบนหน้าเว็บ
-                if (response.ok) {
-                    safeContent.innerText = data.safeTicket;
-                    aiContent.innerText = data.aiResponse;
+                const res = await fetch('/api/ticket', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ticket: input}) });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    document.getElementById('safeTicketResult').innerText = data.safeTicket;
+                    document.getElementById('aiSummaryResult').innerText = data.aiResponse;
                     
                     if (data.retrievedPolicy) {
                         document.getElementById('policyResult').innerText = data.retrievedPolicy;
@@ -206,17 +208,171 @@
                     } else {
                         document.getElementById('policyBox').style.display = "none";
                     }
-
+                    
                     resultBox.style.display = "block";
                 } else {
                     alert("Error: " + data.error);
                 }
-            } catch (error) {
-                alert("Connection failed! ตรวจสอบว่า Backend Server ทำงานอยู่หรือไม่");
+            } catch(e) {
+                alert("Connection failed!");
             } finally {
-                // คืนสถานะปุ่มกลับมาเหมือนเดิม
                 btn.disabled = false;
-                btn.innerText = "ส่งข้อความวิเคราะห์";
+                btn.innerText = "Analyze Ticket";
+            }
+        }
+
+        async function createOrder() {
+            const customerId = document.getElementById('customerId').value || "a1b2c3d4"; 
+            const customerEmail = document.getElementById('customerEmail').value || "test@example.com"; 
+            const pickupPoint = document.getElementById('pickupPoint').value || "BKK";
+            const dropoffPoint = document.getElementById('dropoffPoint').value || "CNX";
+            
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId, customerEmail, pickupPoint, dropoffPoint })
+            });
+            const data = await res.json();
+            document.getElementById('orderResult').innerText = " Order created successfully! Tracking No: " + data.trackingNo;
+        }
+
+        async function loadDashboard() {
+            const container = document.getElementById('dashboardContent');
+            container.innerHTML = "Loading data...";
+            try {
+                const res = await fetch('/api/dashboard/orders');
+                const orders = await res.json();
+                
+                if (orders.length === 0) {
+                    container.innerHTML = "No orders found."; return;
+                }
+
+                const services = ['OrderService', 'DeliveryService', 'NotificationService'];
+                
+                let html = '';
+                orders.forEach(order => {
+                    html += `
+                        <div class="order-row">
+                            <div class="order-header">
+                                <div><strong>Tracking No:</strong> ${order.trackingNo}</div>
+                                <div><strong>Status:</strong> ${order.status}</div>
+                                <div><strong>Customer:</strong> ${order.customer ? order.customer.name : 'Unknown'}</div>
+                            </div>
+                            <div class="flow-container">
+                    `;
+
+                    services.forEach(serviceName => {
+                        const event = order.events.find(e => e.serviceName === serviceName);
+                        let statusClass = 'pending';
+                        let icon = '⏳';
+                        let statusText = 'Pending';
+                        let showError = false;
+                        
+                        if (event) {
+                            if (event.status === 'SUCCESS') { statusClass = 'success'; icon = '✓'; statusText = 'Success'; }
+                            else if (event.status === 'FAILED') { statusClass = 'failed'; icon = '✕'; statusText = 'Failed'; showError = true; }
+                            else if (event.status === 'PENDING') { statusClass = 'pending'; icon = '🔄'; statusText = 'In Progress'; }
+                        } else if (serviceName === 'OrderService' && order.id) {
+                            // Legacy case: no EventLog but Order exists
+                            statusClass = 'success'; icon = '✓'; statusText = 'Success (Legacy)';
+                        }
+
+                        html += `
+                            <div class="flow-step ${statusClass}">
+                                <div class="step-icon">${icon}</div>
+                                <div class="step-name">${serviceName}</div>
+                                <div class="step-status">${statusText}</div>
+                                ${showError ? `
+                                    <div style="color:var(--danger); font-size:11px; margin-top:4px; max-width:120px; text-align:center;">${event.errorMessage}</div>
+                                    <button class="btn-retry" onclick="retryOrder('${order.trackingNo}')"> Retry</button>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+
+                    html += `</div>`;
+
+                    // Display Email Logs
+                    if (order.emails && order.emails.length > 0) {
+                        const masterEmail = order.emails.find(e => e.templateType === 'MASTER');
+                        const masterEmailId = masterEmail ? masterEmail.id : '';
+                        const customerEmail = order.customer && order.customer.email ? order.customer.email : 'Unknown Email';
+                        
+                        html += `<div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4 style="margin:0; color:var(--primary);">Email History</h4>
+                                <div style="font-size: 13px;">
+                                    ${masterEmailId ? `<button onclick="manualResendEmail('${masterEmailId}')" style="background:var(--warning); border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; color:#000;">Manual Resend</button>` : ''}
+                                </div>
+                            </div>
+                            <table style="width:100%; text-align:left; font-size:13px; border-collapse: collapse;">
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                                    <th style="padding:5px;">Type</th>
+                                    <th style="padding:5px;">Status</th>
+                                    <th style="padding:5px;">Retry Count</th>
+                                    <th style="padding:5px;">Actions</th>
+                                    <th style="padding:5px;">Sent To</th>
+                                </tr>`;
+                        order.emails.forEach(em => {
+                            const isMaster = em.templateType === 'MASTER';
+                            html += `
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding:5px;">
+                                        <span style="background:${isMaster ? '#3b82f6' : '#8b5cf6'}; padding:2px 6px; border-radius:4px; font-size:10px;">${em.templateType}</span>
+                                    </td>
+                                    <td style="padding:5px; color:${em.status === 'SUCCESS' ? 'var(--success)' : 'var(--danger)'}">${em.status}</td>
+                                    <td style="padding:5px;">${isMaster ? em.retryCount : '-'}</td>
+                                    <td style="padding:5px;">
+                                        ${em.previewUrl ? `<a href="${em.previewUrl}" target="_blank" style="color:#60a5fa; text-decoration:none; margin-right:10px;">View Email</a>` : ''}
+                                    </td>
+                                    <td style="padding:5px;">${em.recipientEmail || customerEmail || '-'}</td>
+                                </tr>
+                            `;
+                        });
+                        html += `</table></div>`;
+                    }
+
+                    html += `</div>`;
+                });
+                
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = "Error fetching data.";
+            }
+        }
+
+        async function retryOrder(trackingNo) {
+            if(!confirm(`Do you want to re-publish the order.created event for ${trackingNo} to retry?`)) return;
+            try {
+                const res = await fetch(`/api/orders/retry/${trackingNo}`, { method: 'POST' });
+                if(res.ok) {
+                    alert('ส่งคำสั่ง Retry Success!');
+                    setTimeout(loadDashboard, 1000); 
+                }
+            } catch(e) {
+                alert('Retry Failed');
+            }
+        }
+
+        async function manualResendEmail(emailId) {
+            const newEmail = prompt('To change destination, provide a new email (leave blank to use the original customer email):', '');
+            if (newEmail === null) return; // Cancelled by user
+            
+            try {
+                const res = await fetch(`/api/emails/resend/${emailId}`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newEmail: newEmail.trim() })
+                });
+                if(res.ok) {
+                    const data = await res.json();
+                    alert(`ส่งอีเมลSuccess! ดูตัวอย่างได้ที่: ${data.previewUrl || 'console'}`);
+                    setTimeout(loadDashboard, 1000);
+                } else {
+                    alert('Send Failed');
+                }
+            } catch(e) {
+                alert('Send Failed');
             }
         }
     </script>
